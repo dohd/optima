@@ -6,11 +6,11 @@ import (
 	"image/color"
 	"strconv"
 
-	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
@@ -19,30 +19,33 @@ func Run() {
 	myApp := app.NewWithID("com.dohd.optima-app")
 	myApp.Settings().SetTheme(theme.LightTheme())
 	w := myApp.NewWindow("OPTIMA BUSINESS")
-	w.Resize(fyne.NewSize(600, 400))
+	wSize := fyne.NewSize(600, 400)
+	w.Resize(wSize)
 
 	// login form
 	username := widget.NewEntry()
 	username.SetPlaceHolder("Enter Username")
 	password := widget.NewEntry()
 	password.SetPlaceHolder("Enter Password")
-	loginBtn := widget.NewButtonWithIcon("Login\t", theme.LoginIcon(), nil)
+	loginBtn := widget.NewButtonWithIcon("Login", theme.LoginIcon(), nil)
+	loginHeader := canvas.NewText("Welcome", color.Black)
+	loginHeader.Alignment = fyne.TextAlignCenter // Horizontal centering
+	loginHeader.TextSize = 24
 	form := container.NewVBox(
-		widget.NewLabelWithStyle("User Login", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		container.NewPadded(loginHeader),
 		username,
 		password,
 		loginBtn,
 	)
 	formBorder := canvas.NewRectangle(color.RGBA{200, 200, 200, 255}) // dark gray
 	formBorder.CornerRadius = 5
-	formBorder.SetMinSize(fyne.NewSize(300,200))
-	formBorderHeight := formBorder.MinSize().Height
+	formBorder.SetMinSize(fyne.NewSize(wSize.Width * 0.5, wSize.Height * 0.5))
 	borderedCtn := container.NewStack(
 		formBorder, 
 		container.NewHBox(
-			container.NewGridWrap(fyne.NewSize(25, formBorderHeight)),
-			container.NewGridWrap(fyne.NewSize(250, formBorderHeight), form),
-			container.NewGridWrap(fyne.NewSize(25, formBorderHeight)),
+			container.NewGridWrap(fyne.NewSize(formBorder.MinSize().Width * 0.08, formBorder.MinSize().Height)),
+			container.NewGridWrap(fyne.NewSize(formBorder.MinSize().Width * 0.84, formBorder.MinSize().Height), form),
+			container.NewGridWrap(fyne.NewSize(formBorder.MinSize().Width * 0.08, formBorder.MinSize().Height)),
 		),
 	)
 
@@ -68,7 +71,6 @@ func Run() {
 		data[i] = []string{p.Name, "$" + strconv.FormatFloat(p.Price, 'f', 2, 64), strconv.Itoa(p.Stock)}
 	}
 
-
 	table := widget.NewTable(
 		func() (int, int) { return len(data) + 1, 3 }, // Rows + Header, Columns
 		func() fyne.CanvasObject {
@@ -87,38 +89,33 @@ func Run() {
 			}
 		},
 	)
-	// Set column widths (adjust values as needed)
-	table.SetColumnWidth(0, 180) // Product Name
-	table.SetColumnWidth(1, 120)  // Price
-	table.SetColumnWidth(2, 50)  // Stock
 
-	tableBorder := canvas.NewRectangle(theme.ButtonColor()) 
-	tableBorder.SetMinSize(fyne.NewSize(400,300))
+	// Set column widths (adjust values as needed)
+	tableBorderSize := fyne.NewSize(wSize.Width * 0.7, wSize.Height * 0.7)
+	table.SetColumnWidth(0, tableBorderSize.Width * 0.4) // Product Name
+	table.SetColumnWidth(1, tableBorderSize.Width * 0.3)  // Price
+	table.SetColumnWidth(2, tableBorderSize.Width * 0.1)  // Stock
+
+	tableBorder := canvas.NewRectangle(theme.Color(theme.ColorNameBackground)) 
 	tableBorder.CornerRadius = 5
+	tableBorder.SetMinSize(tableBorderSize)
 	tableCtn := container.NewStack(
 		tableBorder, 
-		container.NewHBox(
-			container.NewGridWrap(fyne.NewSize(20, tableBorder.MinSize().Height)),
-			container.NewGridWrap(fyne.NewSize(360, tableBorder.MinSize().Height), container.NewBorder(nil, nil, nil, nil, table)),
-			container.NewGridWrap(fyne.NewSize(20, tableBorder.MinSize().Height)),
-		),
+		container.NewBorder(nil, nil, nil, nil, table),
 	)
-
-
+	
 	headerBorder := canvas.NewRectangle(color.Transparent)
+	createItem := widget.NewButton("Create", nil)
 	headerBorder.CornerRadius = 5
-	headerBorder.SetMinSize(fyne.NewSize(400, 35))
-	headerHeight := headerBorder.MinSize().Height
+	headerBorder.SetMinSize(fyne.NewSize(wSize.Width * 0.7, createItem.MinSize().Height))
 	headerCtn := container.NewStack(
 		headerBorder, 
 		container.NewHBox(
-			container.NewGridWrap(fyne.NewSize(340, headerHeight), widget.NewLabelWithStyle("Products & Services", fyne.TextAlignLeading, fyne.TextStyle{Bold: true})),
-			container.NewGridWrap(fyne.NewSize(60, headerHeight), widget.NewButton("Create", nil)),
+			widget.NewLabelWithStyle("Products & Services", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
+			layout.NewSpacer(),
+			createItem,
 		),
 	)
-
-
-
 
 
 	content := widget.NewLabel("Welcome! Select an option from the menu")
@@ -138,7 +135,7 @@ func Run() {
 			contentArea.Add(
 				container.NewVBox(
 					headerCtn,
-					container.NewGridWrap(fyne.NewSize(400, 20), layout.NewSpacer()),
+					container.NewGridWrap(fyne.NewSize(headerCtn.MinSize().Width, 20), layout.NewSpacer()),
 					tableCtn,
 				),
 			)
@@ -156,7 +153,6 @@ func Run() {
 			contentArea.Add(borderedCtn)
 		}),
 	)
-
 
 	split := container.NewHSplit(menu, contentArea)
 	split.SetOffset(0.2)
