@@ -50,7 +50,7 @@ func Run() {
 	)
 
 
-	// products & services
+	// products & config
 	// Sample product data
 	type Product struct {
 		Name  string

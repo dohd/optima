@@ -1,4 +1,5 @@
-# Ignore all files named .DS_Store or ending with .log
+# Ignore files and directories
 **/.DS_Store
-**.log
 **/tmp
+**.log
+**.db
